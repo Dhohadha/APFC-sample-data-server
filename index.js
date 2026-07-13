@@ -92,7 +92,6 @@ const metersInError = new Set();
 // Message handler
 client.on('message', async (topic, message) => {
   const rawPayload = message.toString();
-  console.log(`[MQTT Message] Topic: ${topic} | Length: ${rawPayload.length}`);
 
   let parsedData = null;
   try {
@@ -108,17 +107,16 @@ client.on('message', async (topic, message) => {
 
     if (isError) {
       if (metersInError.has(meterId)) {
-        console.log(`[Throttled] Suppressed duplicate error message for meter ${meterId}`);
-        return; // Stop saving this message
+        return; // Stop saving this message, no console log
       } else {
         metersInError.add(meterId);
-        console.log(`[Alert] Meter ${meterId} entered error state. Saving first occurrence.`);
+        console.log('device error');
       }
     } else {
       // It's a normal payload (status is not 'error')
       if (metersInError.has(meterId)) {
         metersInError.delete(meterId);
-        console.log(`[Info] Meter ${meterId} returned to normal state.`);
+        console.log('device retrieved');
       }
     }
   }
@@ -131,7 +129,6 @@ client.on('message', async (topic, message) => {
     });
     
     await document.save();
-    console.log(`Saved message to DB from topic ${topic}`);
   } catch (dbErr) {
     console.error('Failed to save message to MongoDB:', dbErr);
     lastError = `DB Save Error: ${dbErr.message}`;
